@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -55,6 +56,16 @@ type ChoiceNodeChoice struct {
 	Text string `json:"Text"`
 }
 
+type Condition struct {
+	ID                 uuid.UUID `json:"Id"`
+	CurrentConditionID int       `json:"CurrentConditionId"`
+
+	Conditions []ConditionNode `json:"Conditions"`
+
+	X float64 `json:"X"`
+	Y float64 `json:"Y"`
+}
+
 type ConditionNode struct {
 	ID int `json:"Id"`
 
@@ -80,11 +91,29 @@ type ConditionNode struct {
 	ConditionElements string `json:"ConditionElements"`
 }
 
+func (c *ConditionNode) Code() ([]ConditionElement, error) {
+	var ce []ConditionElement
+
+	if err := json.Unmarshal([]byte(c.ConditionElements), &ce); err != nil {
+		return nil, err
+	}
+
+	return ce, nil
+}
+
+type ConditionElement struct {
+	ConditionType int `json:"conditionType"`
+	ConditionData struct {
+		ScriptName string `json:"scriptName"`
+		ScriptCode string `json:"scriptCode"`
+	} `json:"conditionData"`
+}
+
 type Dialogue struct {
 	ID                uuid.UUID `json:"Id"`
 	RelatedObjectedID uuid.UUID `json:"RelatedObjectId"`
 
-	Condition []ConditionNode `json:"Condition"`
+	Condition []Condition `json:"Condition"`
 
 	Link []Link `json:"Link"`
 
